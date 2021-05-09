@@ -16,11 +16,16 @@ public class Player : Area2D
 	
 	// Store the size of the game window
 	private Vector2 _screenSize;
+	
+	private AnimatedSprite _animatedSprite;
+	private CollisionShape2D _collisionShape;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		_screenSize = GetViewport().Size;
+		_animatedSprite = GetNode<AnimatedSprite>("AnimatedSprite");
+		_collisionShape = GetNode<CollisionShape2D>("CollisionShape2D");
 		
 		// Hides the player scene and all child scenes
 		Hide();
@@ -31,9 +36,6 @@ public class Player : Area2D
 	{
 		var velocity = CalculateVelocityFromInput();
 
-		// Gets the sprit node that sits below the Player this script is attached to
-		var animatedSprite = GetNode<AnimatedSprite>("AnimatedSprite");
-
 		if (velocity.Length() > 0)
 		{
 			// "Normalized" ensures the vector's total length is 1.
@@ -42,15 +44,15 @@ public class Player : Area2D
 			velocity = velocity.Normalized() * Speed;
 			
 			// Start playing whatever sprite is currently selected
-			animatedSprite.Play();
+			_animatedSprite.Play();
 		}
 		else
 		{
-			animatedSprite.Stop();
+			_animatedSprite.Stop();
 		}
 		
 		ModifyPositionFromVelocity(velocity, delta);
-		ChangeAnimationBasedOnVelocity(velocity, animatedSprite);
+		ChangeAnimationBasedOnVelocity(velocity, _animatedSprite);
 	}
 	
 	// Function to call when we start a new game
@@ -60,7 +62,7 @@ public class Player : Area2D
 		Show();  // Show the player scene
 		
 		// Enable collision detection on the player
-		GetNode<CollisionShape2D>("CollisionShape2D").Disabled = false;
+		_collisionShape.Disabled = false;
 	}
 	
 	private Vector2 CalculateVelocityFromInput()
@@ -128,6 +130,6 @@ public class Player : Area2D
 		EmitSignal("Hit");  // Send out our new signal for any interested scenes
 		
 		// Disables the collision detection on the player scene using a safe approach
-		GetNode<CollisionShape2D>("CollisionShape2D").SetDeferred("disabled", true);
+		_collisionShape.SetDeferred("disabled", true);
 	}
 }

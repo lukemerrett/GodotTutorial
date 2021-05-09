@@ -13,12 +13,30 @@ public class Main : Node
 
 	// Players current score
 	private int _score;
+	
+	private Player _player;
+	private HUD _hud;
+	private Position2D _startPosition;
+	private PathFollow2D _mobSpawnLocation;
+	private Timer _startTimer;
+	private Timer _mobTimer;
+	private Timer _scoreTimer;
+	private AudioStreamPlayer _music;
+	private AudioStreamPlayer _deathSound;
 
 	private Random _random = new Random();
 
 	public override void _Ready()
 	{
-		
+		_player = GetNode<Player>("Player");
+		_hud = GetNode<HUD>("HUD");
+		_startPosition = GetNode<Position2D>("StartPosition");
+		_mobSpawnLocation = GetNode<PathFollow2D>("MobPath/MobSpawnLocation");
+		_startTimer = GetNode<Timer>("StartTimer");
+		_mobTimer = GetNode<Timer>("MobTimer");
+		_scoreTimer = GetNode<Timer>("ScoreTimer");
+		_music = GetNode<AudioStreamPlayer>("Music");
+		_deathSound = GetNode<AudioStreamPlayer>("DeathSound");
 	}
 	
 	public void NewGame()
@@ -27,28 +45,24 @@ public class Main : Node
 
 		// Place the player back at the start position
 		// Call the "Start" method on the player to allow the scene to set itself up
-		var player = GetNode<Player>("Player");
-		var startPosition = GetNode<Position2D>("StartPosition");
-		player.Start(startPosition.Position);
+		_player.Start(_startPosition.Position);
 
 		// Start the count down for the game to start
-		GetNode<Timer>("StartTimer").Start();
+		_startTimer.Start();
 		
 		// Set the score back to 0 on the HUD and show the get ready message
-		var hud = GetNode<HUD>("HUD");
-		hud.UpdateScore(_score);
-		hud.ShowMessage("Get Ready!");
+		_hud.UpdateScore(_score);
+		_hud.ShowMessage("Get Ready!");
 		
 		// Start playing music
-		var music = GetNode<AudioStreamPlayer>("Music");
-		music.Play();
+		_music.Play();
 	}
 	
 	// Triggers when the start timer expires
 	private void _on_StartTimer_timeout()
 	{
-		GetNode<Timer>("MobTimer").Start();
-		GetNode<Timer>("ScoreTimer").Start();
+		_mobTimer.Start();
+		_scoreTimer.Start();
 	}
 
 	// Triggers every time the score timer loops
@@ -56,9 +70,7 @@ public class Main : Node
 	private void _on_ScoreTimer_timeout()
 	{
 		_score++;
-		
-		// Update score on HUD
-		GetNode<HUD>("HUD").UpdateScore(_score);
+		_hud.UpdateScore(_score);
 	}
 	
 	// Triggers every time the mob timer loops
@@ -67,20 +79,19 @@ public class Main : Node
 	{
 		// Choose a location along the mob path based on where the following
 		// point currently is, then add a jitter to it so it's not predictable
-		var mobSpawnLocation = GetNode<PathFollow2D>("MobPath/MobSpawnLocation");
-		mobSpawnLocation.Offset = _random.Next();
+		_mobSpawnLocation.Offset = _random.Next();
 
 		// Create a new mob scene and add it to the Main scene
 		var mobInstance = (RigidBody2D)Mob.Instance();
 		AddChild(mobInstance);
 
 		// Set the mob's position to where we've decided it should start
-		mobInstance.Position = mobSpawnLocation.Position;
+		mobInstance.Position = _mobSpawnLocation.Position;
 
 		// Set the mob's direction perpendicular to the path direction
 		// So it flies away from the edge of the screen
 		// Then add some randomness into it so it's not always exactly perpendicular
-		float direction = mobSpawnLocation.Rotation + Mathf.Pi / 2;
+		float direction = _mobSpawnLocation.Rotation + Mathf.Pi / 2;
 		direction += RandRange(-Mathf.Pi / 4, Mathf.Pi / 4);
 		mobInstance.Rotation = direction;
 		
@@ -93,22 +104,15 @@ public class Main : Node
 	private void GameOver()
 	{
 		// Stop the timers so Mobs stop spawning and the score stops incrementing
-		GetNode<Timer>("MobTimer").Stop();
-		GetNode<Timer>("ScoreTimer").Stop();
+		_mobTimer.Stop();
+		_scoreTimer.Stop();
 		
 		// Delete all Mobs by calling their group name as configured on the Mob scene
 		GetTree().CallGroup("mobs", "queue_free");
 		
-		// HUD will show when it is game over
-		GetNode<HUD>("HUD").ShowGameOver();
-		
-		// Stop playing music
-		var music = GetNode<AudioStreamPlayer>("Music");
-		music.Stop();
-		
-		// Play the death sound effect
-		var deathSound = GetNode<AudioStreamPlayer>("DeathSound");
-		deathSound.Play();
+		_hud.ShowGameOver();
+		_music.Stop();
+		_deathSound.Play();
 	}
 	
 	// Creates a random float between the values defined
