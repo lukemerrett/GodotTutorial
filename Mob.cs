@@ -12,7 +12,7 @@ public class Mob : RigidBody2D
 	public int MaxSpeed = 250; // Maximum speed range.
 	
 	// To help us randomly choose a speed, position and animation for the Mob.
-	private static private Random _random = new Random();
+	private static Random _random = new Random();
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
