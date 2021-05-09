@@ -38,6 +38,10 @@ public class Main : Node
 		var hud = GetNode<HUD>("HUD");
 		hud.UpdateScore(_score);
 		hud.ShowMessage("Get Ready!");
+		
+		// Start playing music
+		var music = GetNode<AudioStreamPlayer>("Music");
+		music.Play();
 	}
 	
 	// Triggers when the start timer expires
@@ -92,8 +96,19 @@ public class Main : Node
 		GetNode<Timer>("MobTimer").Stop();
 		GetNode<Timer>("ScoreTimer").Stop();
 		
+		// Delete all Mobs by calling their group name as configured on the Mob scene
+		GetTree().CallGroup("mobs", "queue_free");
+		
 		// HUD will show when it is game over
 		GetNode<HUD>("HUD").ShowGameOver();
+		
+		// Stop playing music
+		var music = GetNode<AudioStreamPlayer>("Music");
+		music.Stop();
+		
+		// Play the death sound effect
+		var deathSound = GetNode<AudioStreamPlayer>("DeathSound");
+		deathSound.Play();
 	}
 	
 	// Creates a random float between the values defined
