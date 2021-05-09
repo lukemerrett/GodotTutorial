@@ -18,7 +18,7 @@ public class Main : Node
 
 	public override void _Ready()
 	{
-		NewGame();
+		
 	}
 	
 	public void NewGame()
@@ -33,6 +33,11 @@ public class Main : Node
 
 		// Start the count down for the game to start
 		GetNode<Timer>("StartTimer").Start();
+		
+		// Set the score back to 0 on the HUD and show the get ready message
+		var hud = GetNode<HUD>("HUD");
+		hud.UpdateScore(_score);
+		hud.ShowMessage("Get Ready!");
 	}
 	
 	// Triggers when the start timer expires
@@ -47,6 +52,9 @@ public class Main : Node
 	private void _on_ScoreTimer_timeout()
 	{
 		_score++;
+		
+		// Update score on HUD
+		GetNode<HUD>("HUD").UpdateScore(_score);
 	}
 	
 	// Triggers every time the mob timer loops
@@ -83,6 +91,9 @@ public class Main : Node
 		// Stop the timers so Mobs stop spawning and the score stops incrementing
 		GetNode<Timer>("MobTimer").Stop();
 		GetNode<Timer>("ScoreTimer").Stop();
+		
+		// HUD will show when it is game over
+		GetNode<HUD>("HUD").ShowGameOver();
 	}
 	
 	// Creates a random float between the values defined
